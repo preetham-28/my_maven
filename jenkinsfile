@@ -1,43 +1,59 @@
+@Library('mylibrary')_
 pipeline
 {
     agent any
     stages
     {
-        stage('contdownload')
+        stage('contdownload_master')
         {
             steps
             {
-               git 'https://github.com/intelliqittrainings/maven.git' 
+                script
+                {
+                    cicd.gitdownload("maven")
+                }
             }
         }
-        stage('contbuild')
+        stage('contbuild_master')
         {
             steps
             {
-                sh 'mvn package'
+                script
+                {
+                    cicd.build()
+                }
             }
         }
-        stage('contdeploy')
+        stage('contdeploy_master')
         {
             steps
             {
-                deploy adapters: [tomcat9(credentialsId: '6568a0c6-613f-4317-84fb-685ed86709da', path: '', url: 'http://172.31.36.3:8080')], contextPath: 'testerapp', war: '**/*.war'
+                script
+                {
+                    cicd.tomcatdeploy("http://172.31.36.3:8080","testapp")
+                }
             }
         }
-        stage('conttesting')
+        stage('conttest_master')
         {
             steps
             {
-                git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
-                sh 'java -jar /var/lib/jenkins/workspace/pipeline2/testing.jar'
+                script
+                {
+                    cicd.gitdownload("functionaltesting")
+                    cicd.selenium("Declarativepipelinesharedlibrary")
+                }
             }
         }
-        stage('contdalivery')
+        stage('contdelivary_master')
         {
             steps
             {
-                deploy adapters: [tomcat9(credentialsId: '6568a0c6-613f-4317-84fb-685ed86709da', path: '', url: 'http://172.31.39.255:8080')], contextPath: 'prodapp', war: '**/*.war'
+                script
+                {
+                    cicd.tomcatdeploy("http://172.31.39.255:8080","prodapp")
+                }
             }
         }
     }
-}
+} 
