@@ -1,4 +1,3 @@
-@Library('mylibrary')_
 pipeline
 {
     agent any
@@ -8,51 +7,36 @@ pipeline
         {
             steps
             {
-                script
-                {
-                    cicd.gitdownload("maven")
-                }
+               git 'https://github.com/intelliqittrainings/maven.git' 
             }
         }
         stage('contbuild')
         {
             steps
             {
-                script
-                {
-                    cicd.build()
-                }
+                sh 'mvn package'
             }
         }
         stage('contdeploy')
         {
             steps
             {
-                script
-                {
-                    cicd.tomcatdeploy("http://172.31.36.3:8080","testapp")
-                }
+                deploy adapters: [tomcat9(credentialsId: '6568a0c6-613f-4317-84fb-685ed86709da', path: '', url: 'http://172.31.36.3:8080')], contextPath: 'testerapp', war: '**/*.war'
             }
         }
-        stage('conttest')
+        stage('conttesting')
         {
             steps
             {
-                script
-                {
-                    cicd.gitdownload("functionaltesting")
-                    cicd.selenium("Declarativepipelinesharedlibrary")
-                }
+                git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                sh 'java -jar /var/lib/jenkins/workspace/pipeline2/testing.jar'
             }
         }
-        stage('contdelivary')
+        stage('contdalivery')
         {
             steps
             {
-                script
-                {
-                    cicd.tomcatdeploy("http://172.31.39.255:8080","prodapp")
-                }
+                deploy adapters: [tomcat9(credentialsId: '6568a0c6-613f-4317-84fb-685ed86709da', path: '', url: 'http://172.31.39.255:8080')], contextPath: 'prodapp', war: '**/*.war'
             }
         }
     }
